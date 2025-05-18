@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package calculator;
+
+message TwoNumbers {
+  int32 a = 1;
+  int32 b = 2;
+}
+
+message Result {
+  int32 value = 1;
+}
+
+service Calculator {
+  rpc Add (TwoNumbers) returns (Result);
+  rpc Subtract (TwoNumbers) returns (Result);
+}
