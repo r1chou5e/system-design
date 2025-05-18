@@ -1,12 +1,15 @@
 const fetch = require('node-fetch');
 
 const rpcRequest = async (method, params) => {
+  const startTime = performance.now();
   const response = await fetch('http://localhost:3000/rpc', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
   });
   const data = await response.json();
+  const endTime = performance.now();
+  console.log(`[JSON-RPC] ${method} took ${endTime - startTime}ms`);
   return data.result;
 };
 

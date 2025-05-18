@@ -1,6 +1,7 @@
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
+const { performance } = require('perf_hooks');
 
 const PROTO_PATH = path.join(__dirname, 'proto', 'calculator.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
@@ -12,12 +13,29 @@ const client = new calculatorProto.Calculator(
   grpc.credentials.createInsecure()
 );
 
-client.Add({ a: 4, b: 2 }, (err, response) => {
-  if (err) return console.error(err);
-  console.log('[gRPC] 4 + 2 =', response.value);
-});
+function timeGrpcCall(method, params) {
+  return new Promise((resolve, reject) => {
+    const startTime = performance.now();
+    client[method](params, (err, response) => {
+      const endTime = performance.now();
+      if (err) {
+        console.error(err);
+        return reject(err);
+      }
+      console.log(`[gRPC] ${method} took ${endTime - startTime}ms`);
+      resolve(response);
+    });
+  });
+}
 
-client.Subtract({ a: 7, b: 3 }, (err, response) => {
-  if (err) return console.error(err);
-  console.log('[gRPC] 7 - 3 =', response.value);
-});
+(async () => {
+  try {
+    const addResult = await timeGrpcCall('Add', { a: 4, b: 2 });
+    console.log('[gRPC] 4 + 2 =', addResult.value);
+
+    const subtractResult = await timeGrpcCall('Subtract', { a: 7, b: 3 });
+    console.log('[gRPC] 7 - 3 =', subtractResult.value);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+})();
